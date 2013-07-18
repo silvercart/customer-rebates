@@ -70,6 +70,10 @@ class SilvercartCustomerRebateGroup extends DataObjectDecorator {
                             '"GroupID" = ' . $this->owner->ID
             );
             $rebatesTable->pageSize = 50;
+            $rebatesTable->setPermissions(array(
+                'edit',
+                'delete',
+            ));
             $fields->findOrMakeTab('Root.SilvercartCustomerRebates', $this->owner->fieldLabel('SilvercartCustomerRebates'));
             $fields->addFieldToTab("Root.SilvercartCustomerRebates", $rebatesTable);
         }
