@@ -346,7 +346,10 @@ class SilvercartCustomerRebate extends DataObject {
     public function ShoppingCartPositions(SilvercartShoppingCart $silvercartShoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) {
         $rebatePositions = new DataObjectSet();
         
-        if (!$this->doNotCallThisAsShoppingCartPlugin && $taxable && $this->getShoppingCart()->SilvercartShoppingCartPositions()->Count() > 0) {
+        if (!$this->doNotCallThisAsShoppingCartPlugin &&
+            $taxable &&
+            $this->getShoppingCart()->SilvercartShoppingCartPositions()->Count() > 0 &&
+            Member::currentUser()->hasCustomerRebate()) {
             if (is_null($this->rebatePositions)) {
                 $taxRates           = $this->getShoppingCart()->getTaxRatesWithoutFeesAndCharges();
                 $mostValuableRate   = $this->getShoppingCart()->getMostValuableTaxRate($taxRates);
