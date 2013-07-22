@@ -56,7 +56,7 @@ class SilvercartCustomerRebateGroup extends DataObjectDecorator {
      * @return void
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
+     * @since 21.07.2013
      */
     public function updateCMSFields(FieldSet &$fields) {
         $fields->addFieldToTab('Root.Members', new TextField('Code', _t('Group.CODE')));
@@ -71,6 +71,7 @@ class SilvercartCustomerRebateGroup extends DataObjectDecorator {
             );
             $rebatesTable->pageSize = 50;
             $rebatesTable->setPermissions(array(
+                'add',
                 'edit',
                 'delete',
             ));
