@@ -268,11 +268,12 @@ class SilvercartCustomerRebate extends DataObject {
      * @return SilvercartCustomerRebate
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
+     * @since 29.10.2013
      */
     public function loadObjectForShoppingCart(SilvercartShoppingCart $silvercartShoppingCart) {
         $object = null;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!$this->doNotCallThisAsShoppingCartPlugin &&
+            Member::currentUser() instanceof Member) {
             $object = Member::currentUser()->getCustomerRebate();
         }
         return $object;
