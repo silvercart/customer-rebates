@@ -88,6 +88,13 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
                     $cart  = $this->owner->getCart();
                     $total = $cart->getAmountTotalWithoutFees(array('SilvercartCustomerRebate'));
                     if ($total->getAmount() < $rebate->MinimumOrderValue->getAmount()) {
+                        // Rebate has a minimum order value higher than the 
+                        // shopping cart total amount.
+                        $rebate = null;
+                    } elseif ($rebate->RestrictToNewsletterRecipients &&
+                              !$this->owner->SubscribedToNewsletter) {
+                        // Rebate is restricted to newsletter recipients but 
+                        // the customer did not subscribe to newsletter.
                         $rebate = null;
                     }
                     $this->doNotCallThisAsShoppingCartPlugin = false;

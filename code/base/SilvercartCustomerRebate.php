@@ -38,11 +38,12 @@ class SilvercartCustomerRebate extends DataObject {
      * @var array
      */
     public static $db = array(
-        'ValidFrom'         => 'Date',
-        'ValidUntil'        => 'Date',
-        'Type'              => "enum('absolute,percent','absolute')",
-        'Value'             => 'Float',
-        'MinimumOrderValue' => 'Money',
+        'ValidFrom'                      => 'Date',
+        'ValidUntil'                     => 'Date',
+        'Type'                           => "enum('absolute,percent','absolute')",
+        'Value'                          => 'Float',
+        'MinimumOrderValue'              => 'Money',
+        'RestrictToNewsletterRecipients' => 'Boolean',
     );
     
     /**
@@ -150,6 +151,7 @@ class SilvercartCustomerRebate extends DataObject {
                     'Value'                             => _t('SilvercartCustomerRebate.Value'),
                     'Title'                             => _t('SilvercartCustomerRebate.Title'),
                     'MinimumOrderValue'                 => _t('SilvercartCustomerRebate.MinimumOrderValue'),
+                    'RestrictToNewsletterRecipients'    => _t('SilvercartCustomerRebate.RestrictToNewsletterRecipients'),
                     'Group'                             => _t('Group.SINGULARNAME'),
                     'SilvercartCustomerRebateLanguages' => _t('SilvercartCustomerRebateLanguage.PLURALNAME'),
                 )
