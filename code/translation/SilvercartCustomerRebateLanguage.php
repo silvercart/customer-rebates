@@ -39,7 +39,7 @@ class SilvercartCustomerRebateLanguage extends DataObject {
      * @var array
      */
     public static $db = array(
-        'Title' => 'VarChar',
+        'Title' => 'VarChar(256)',
     );
     
     /**
