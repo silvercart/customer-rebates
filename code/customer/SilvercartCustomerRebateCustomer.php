@@ -83,7 +83,7 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
                         }
                     }
                 }
-                $this->checkRebateConditions($rebate);
+                $rebate = $this->checkRebateConditions($rebate);
             }
             $this->customerRebate = $rebate;
         }
@@ -121,6 +121,7 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
             }
             $this->doNotCallThisAsShoppingCartPlugin = false;
         }
+        return $rebate;
     }
     
 }
