@@ -46,6 +46,8 @@ $lang['en_US']['SilvercartCustomerRebate']['Title']                             
 $lang['en_US']['SilvercartCustomerRebate']['TaxInfo']                           = 'amount for positions with %s%% Vat.';
 $lang['en_US']['SilvercartCustomerRebate']['MinimumOrderValue']                 = 'Minimum order value';
 $lang['en_US']['SilvercartCustomerRebate']['RestrictToNewsletterRecipients']    = 'Restrict to newsletter recipients';
+$lang['en_US']['SilvercartCustomerRebate']['SilvercartProductGroups']           = 'Restrict to the folowing product groups';
+$lang['en_US']['SilvercartCustomerRebate']['ValidForPositions']                 = 'Rebate is valid for position(s): %s';
 
 $lang['en_US']['SilvercartCustomerRebateLanguage']['SINGULARNAME']              = _t('Silvercart.TRANSLATION');
 $lang['en_US']['SilvercartCustomerRebateLanguage']['PLURALNAME']                = _t('Silvercart.TRANSLATIONS');

@@ -17,14 +17,35 @@
  * along with SilverCart.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package SilvercartCustomerRebate
- * @subpackage Config
- * @ignore
+ * @subpackage Security
  */
 
-SilvercartShoppingCart::registerModule('SilvercartCustomerRebate');
-
-Object::add_extension('Group',                              'SilvercartCustomerRebateGroup');
-Object::add_extension('Member',                             'SilvercartCustomerRebateCustomer');
-Object::add_extension('SilvercartCustomerRebate',           'SilvercartDataObjectMultilingualDecorator');
-Object::add_extension('SilvercartCustomerRebateLanguage',   'SilvercartLanguageDecorator');
-Object::add_extension('SilvercartProductGroupPage',         'SilvercartCustomerRebateProductGroupPage');
+/**
+ * Extension for Group.
+ * 
+ * @package SilvercartCustomerRebate
+ * @subpackage Security
+ * @author Sebastian Diel <sdiel@pixeltricks.de>
+ * @copyright 2013 pixeltricks GmbH
+ * @since 17.07.2013
+ * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
+ */
+class SilvercartCustomerRebateProductGroupPage extends DataObjectDecorator {
+    
+    /**
+     * Extra statics
+     * 
+     * @return array
+     * 
+     * @author Sebastian Diel <sdiel@pixeltricks.de>
+     * @since 10.03.2014
+     */
+    public function extraStatics() {
+        return array(
+            'belongs_many_many' => array(
+                'SilvercartCustomerRebates' => 'SilvercartCustomerRebate',
+            ),
+        );
+    }
+    
+}

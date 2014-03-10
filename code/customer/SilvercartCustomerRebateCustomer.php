@@ -83,26 +83,44 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
                         }
                     }
                 }
-                if ($rebate instanceof SilvercartCustomerRebate) {
-                    $this->doNotCallThisAsShoppingCartPlugin = true;
-                    $cart  = $this->owner->getCart();
-                    $total = $cart->getAmountTotalWithoutFees(array('SilvercartCustomerRebate'));
-                    if ($total->getAmount() < $rebate->MinimumOrderValue->getAmount()) {
-                        // Rebate has a minimum order value higher than the 
-                        // shopping cart total amount.
-                        $rebate = null;
-                    } elseif ($rebate->RestrictToNewsletterRecipients &&
-                              !$this->owner->SubscribedToNewsletter) {
-                        // Rebate is restricted to newsletter recipients but 
-                        // the customer did not subscribe to newsletter.
-                        $rebate = null;
-                    }
-                    $this->doNotCallThisAsShoppingCartPlugin = false;
-                }
+                $this->checkRebateConditions($rebate);
             }
             $this->customerRebate = $rebate;
         }
         return $this->customerRebate;
+    }
+    
+    /**
+     * Checks the conditions for the given rebate.
+     * If the conditions are not fulfilled, the rebate will be set to NULL.
+     * 
+     * @param SilvercartCustomerRebate $rebate Rebate to check conditions for.
+     * 
+     * @return void
+     *
+     * @author Sebastian Diel <sdiel@pixeltricks.de>
+     * @since 10.03.2014
+     */
+    protected function checkRebateConditions($rebate) {
+        if ($rebate instanceof SilvercartCustomerRebate) {
+            $this->doNotCallThisAsShoppingCartPlugin = true;
+            $cart  = $this->owner->getCart();
+            $total = $cart->getAmountTotalWithoutFees(array('SilvercartCustomerRebate'));
+            if ($total->getAmount() < $rebate->MinimumOrderValue->getAmount()) {
+                // Rebate has a minimum order value higher than the 
+                // shopping cart total amount.
+                $rebate = null;
+            } elseif ($rebate->RestrictToNewsletterRecipients &&
+                      !$this->owner->SubscribedToNewsletter) {
+                // Rebate is restricted to newsletter recipients but 
+                // the customer did not subscribe to newsletter.
+                $rebate = null;
+            } elseif ($rebate->SilvercartProductGroups()->Count() > 0 &&
+                      $rebate->getRebatePositions()->Count() == 0) {
+                $rebate = null;
+            }
+            $this->doNotCallThisAsShoppingCartPlugin = false;
+        }
     }
     
 }

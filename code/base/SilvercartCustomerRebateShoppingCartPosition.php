@@ -125,6 +125,14 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
             if ($this->isSplittedPosition) {
                 $title .= ' (<i>' . sprintf(_t('SilvercartCustomerRebate.TaxInfo'), $this->getTaxRate()) . '</i>)';
             }
+            if ($this->getCustomerRebate()->SilvercartProductGroups()->Count() > 0) {
+                $positions = $this->getCustomerRebate()->getRebatePositions();
+                $nums = array();
+                foreach ($positions as $position) {
+                    $nums[] = $position->PositionNum;
+                }
+                $title .= '<br/><i> - ' . sprintf(_t('SilvercartCustomerRebate.ValidForPositions'), implode(', ', $nums)) . '</i>';
+            }
         }
         return $title;
     }
@@ -325,7 +333,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
                     arsort($amounts);
 
                     $rebatePrice = $this->getPriceTotal();
-
+                    
                     foreach ($amounts as $rate => $amount) {
                         if ($rebatePrice == 0) {
                             break;

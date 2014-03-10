@@ -63,6 +63,15 @@ class SilvercartCustomerRebate extends DataObject {
     public static $has_many = array(
         'SilvercartCustomerRebateLanguages' => 'SilvercartCustomerRebateLanguage',
     );
+
+    /**
+     * Many many relations.
+     *
+     * @var array
+     */
+    public static $many_many = array(
+        'SilvercartProductGroups' => 'SilvercartProductGroupPage'
+    );
     
     /**
      * Casted attributes.
@@ -154,6 +163,7 @@ class SilvercartCustomerRebate extends DataObject {
                     'RestrictToNewsletterRecipients'    => _t('SilvercartCustomerRebate.RestrictToNewsletterRecipients'),
                     'Group'                             => _t('Group.SINGULARNAME'),
                     'SilvercartCustomerRebateLanguages' => _t('SilvercartCustomerRebateLanguage.PLURALNAME'),
+                    'SilvercartProductGroups'           => _t('SilvercartCustomerRebate.SilvercartProductGroups'),
                 )
         );
         
@@ -223,6 +233,16 @@ class SilvercartCustomerRebate extends DataObject {
         );
         $typeField->setSource($typeFieldValues);
         
+        $productGroupHolder = SilvercartTools::PageByIdentifierCode('SilvercartProductGroupHolder');
+        $productGroupsField = new TreeMultiselectField(
+                'SilvercartProductGroups',
+                $this->fieldLabel('SilvercartProductGroups'),
+                'SiteTree'
+        );
+        $productGroupsField->setTreeBaseID($productGroupHolder->ID);
+
+        $fields->addFieldToTab('Root.Main', $productGroupsField);
+        
         return $fields;
     }
     
@@ -256,14 +276,20 @@ class SilvercartCustomerRebate extends DataObject {
                 $this->doNotCallThisAsShoppingCartPlugin = true;
                 $cart = Member::currentUser()->SilvercartShoppingCart();
                 if ($cart instanceof SilvercartShoppingCart) {
-                    $total = $cart->getAmountTotalWithoutFees();
-                    if ($this->Type == 'absolute') {
-                        $value = $this->Value;
+                    if ($this->SilvercartProductGroups()->Count() == 0) {
+                        // get rebate value from total amount
+                        $total = $cart->getAmountTotalWithoutFees();
+                        if ($this->Type == 'absolute') {
+                            $value = $this->Value;
+                        } else {
+                            $value = ($total->getAmount() / 100) * $this->Value;
+                        }
+                        if ($total->getAmount() < $value) {
+                            $value = $total->getAmount();
+                        }
                     } else {
-                        $value = ($total->getAmount() / 100) * $this->Value;
-                    }
-                    if ($total->getAmount() < $value) {
-                        $value = $total->getAmount();
+                        // get rebate value from single positions.
+                        $value = $this->getRebateValueForShoppingCartPositions();
                     }
                     $this->doNotCallThisAsShoppingCartPlugin = false;
                 }
@@ -272,6 +298,63 @@ class SilvercartCustomerRebate extends DataObject {
         return $value;
     }
     
+    /**
+     * Returns the rebate value for shopping cart positions.
+     * 
+     * @return float
+     */
+    protected function getRebateValueForShoppingCartPositions() {
+        $value       = 0;
+        $totalAmount = 0;
+
+        if ($this->Type == 'absolute') {
+            $value = $this->Value;
+        }
+        
+        foreach ($this->getRebatePositions() as $position) {
+            $totalAmount += $position->getPrice()->getAmount();
+            if ($this->Type == 'percent') {
+                $value += ($position->getPrice()->getAmount() / 100) * $this->Value;
+            }
+        }
+        
+        if ($totalAmount < $value) {
+            $value = $totalAmount;
+        }
+        
+        return $value;
+    }
+    
+    /**
+     * Returns the positions to rebate.
+     * 
+     * @return DataObjectSet
+     */
+    public function getRebatePositions() {
+        $rebatePositions    = new DataObjectSet();
+        $cart               = Member::currentUser()->SilvercartShoppingCart();
+        $validProductGroups = $this->SilvercartProductGroups()->map();
+        $positionNum        = 1;
+        foreach ($cart->SilvercartShoppingCartPositions() as $position) {
+            $product = $position->SilvercartProduct();
+            $position->PositionNum = $positionNum;
+            if (array_key_exists($product->SilvercartProductGroupID, $validProductGroups)) {
+                $rebatePositions->push($position);
+            } elseif ($product->SilvercartProductGroupMirrorPages()->Count() > 0) {
+                $mirrorProductGroupIDs = array_keys($product->SilvercartProductGroupMirrorPages()->map());
+                foreach ($mirrorProductGroupIDs as $mirrorProductGroupID) {
+                    if (array_key_exists($mirrorProductGroupID, $validProductGroups)) {
+                        $rebatePositions->push($position);
+                        break;
+                    }
+                }
+            }
+            $positionNum++;
+        }
+        
+        return $rebatePositions;
+    }
+
     /**
      * Returns the current shopping cart.
      * 
