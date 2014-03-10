@@ -40,6 +40,13 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
     protected $customerRebate = null;
     
     /**
+     * indicator to prevent the module from loading.
+     *
+     * @var bool
+     */
+    protected $doNotCallThisAsShoppingCartPlugin = false;
+    
+    /**
      * Returns whether there is a current rebate.
      * 
      * @return boolean
@@ -65,14 +72,25 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
     public function getCustomerRebate() {
         if (is_null($this->customerRebate)) {
             $rebate = null;
-            $groups = $this->owner->Groups();
-            foreach ($groups as $group) {
-                if ($group->hasValidCustomerRebate()) {
-                    $validRebate = $group->getValidCustomerRebate();
-                    if (is_null($rebate) ||
-                        $validRebate->getRebateValueForShoppingCart() > $rebate->getRebateValueForShoppingCart()) {
-                        $rebate = $validRebate;
+            if (!$this->doNotCallThisAsShoppingCartPlugin) {
+                $groups = $this->owner->Groups();
+                foreach ($groups as $group) {
+                    if ($group->hasValidCustomerRebate()) {
+                        $validRebate = $group->getValidCustomerRebate();
+                        if (is_null($rebate) ||
+                            $validRebate->getRebateValueForShoppingCart() > $rebate->getRebateValueForShoppingCart()) {
+                            $rebate = $validRebate;
+                        }
                     }
+                }
+                if ($rebate instanceof SilvercartCustomerRebate) {
+                    $this->doNotCallThisAsShoppingCartPlugin = true;
+                    $cart  = $this->owner->getCart();
+                    $total = $cart->getAmountTotalWithoutFees(array('SilvercartCustomerRebate'));
+                    if ($total->getAmount() < $rebate->MinimumOrderValue->getAmount()) {
+                        $rebate = null;
+                    }
+                    $this->doNotCallThisAsShoppingCartPlugin = false;
                 }
             }
             $this->customerRebate = $rebate;

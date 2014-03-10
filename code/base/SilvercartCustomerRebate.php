@@ -38,10 +38,11 @@ class SilvercartCustomerRebate extends DataObject {
      * @var array
      */
     public static $db = array(
-        'ValidFrom'     => 'Date',
-        'ValidUntil'    => 'Date',
-        'Type'          => "enum('absolute,percent','absolute')",
-        'Value'         => 'Float',
+        'ValidFrom'         => 'Date',
+        'ValidUntil'        => 'Date',
+        'Type'              => "enum('absolute,percent','absolute')",
+        'Value'             => 'Float',
+        'MinimumOrderValue' => 'Money',
     );
     
     /**
@@ -68,7 +69,8 @@ class SilvercartCustomerRebate extends DataObject {
      * @var array
      */
     public static $casting = array(
-        'Title' => 'Text',
+        'Title'                 => 'Text',
+        'MinimumOrderValueNice' => 'Text',
     );
     
     /**
@@ -134,19 +136,22 @@ class SilvercartCustomerRebate extends DataObject {
      * @return array
      * 
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
+     * @since 10.03.2014
      */
     public function fieldLabels($includerelations = true) {
         $fieldLabels = array_merge(
                 parent::fieldLabels($includerelations),
                 array(
-                    'ValidFrom'     => _t('SilvercartCustomerRebate.ValidFrom'),
-                    'ValidUntil'    => _t('SilvercartCustomerRebate.ValidUntil'),
-                    'Type'          => _t('SilvercartCustomerRebate.Type'),
-                    'TypeAbsolute'  => _t('SilvercartCustomerRebate.TypeAbsolute'),
-                    'TypePercent'   => _t('SilvercartCustomerRebate.TypePercent'),
-                    'Value'         => _t('SilvercartCustomerRebate.Value'),
-                    'Title'         => _t('SilvercartCustomerRebate.Title'),
+                    'ValidFrom'                         => _t('SilvercartCustomerRebate.ValidFrom'),
+                    'ValidUntil'                        => _t('SilvercartCustomerRebate.ValidUntil'),
+                    'Type'                              => _t('SilvercartCustomerRebate.Type'),
+                    'TypeAbsolute'                      => _t('SilvercartCustomerRebate.TypeAbsolute'),
+                    'TypePercent'                       => _t('SilvercartCustomerRebate.TypePercent'),
+                    'Value'                             => _t('SilvercartCustomerRebate.Value'),
+                    'Title'                             => _t('SilvercartCustomerRebate.Title'),
+                    'MinimumOrderValue'                 => _t('SilvercartCustomerRebate.MinimumOrderValue'),
+                    'Group'                             => _t('Group.SINGULARNAME'),
+                    'SilvercartCustomerRebateLanguages' => _t('SilvercartCustomerRebateLanguage.PLURALNAME'),
                 )
         );
         
@@ -161,15 +166,16 @@ class SilvercartCustomerRebate extends DataObject {
      * @return array
      * 
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
+     * @since 10.03.2014
      */
     public function summaryFields() {
         $summaryFields = array(
-            'Title'         => $this->fieldLabel('Title'),
-            'ValidFrom'     => $this->fieldLabel('ValidFrom'),
-            'ValidUntil'    => $this->fieldLabel('ValidUntil'),
-            'Type'          => $this->fieldLabel('Type'),
-            'Value'         => $this->fieldLabel('Value'),
+            'Title'                 => $this->fieldLabel('Title'),
+            'ValidFrom'             => $this->fieldLabel('ValidFrom'),
+            'ValidUntil'            => $this->fieldLabel('ValidUntil'),
+            'MinimumOrderValueNice' => $this->fieldLabel('MinimumOrderValue'),
+            'Type'                  => $this->fieldLabel('Type'),
+            'Value'                 => $this->fieldLabel('Value'),
         );
         
         $this->extend('updateSummaryFields', $summaryFields);
@@ -185,7 +191,16 @@ class SilvercartCustomerRebate extends DataObject {
      * @return FieldSet
      */
     public function getCMSFields($params = null) {
-        $fields = parent::getCMSFields($params);
+        $fields = parent::getCMSFields(
+                array_merge(
+                        (array)$params,
+                        array(
+                            'fieldClasses' => array(
+                                'MinimumOrderValue' => 'SilvercartMoneyField',
+                            ),
+                        )
+                )
+        );
         
         $languageFields = SilvercartLanguageHelper::prepareCMSFields($this->getLanguage(true));
         foreach ($languageFields as $languageField) {
@@ -216,6 +231,15 @@ class SilvercartCustomerRebate extends DataObject {
      */
     public function getTitle() {
         return $this->getLanguageFieldValue('Title');
+    }
+    
+    /**
+     * Returns the MinimumOrderValue in a nice format.
+     *
+     * @return string
+     */
+    public function getMinimumOrderValueNice() {
+        return $this->MinimumOrderValue->Nice();
     }
     
     /**

@@ -44,3 +44,7 @@ $lang['en_US']['SilvercartCustomerRebate']['TypePercent']                       
 $lang['en_US']['SilvercartCustomerRebate']['Value']                             = 'Value';
 $lang['en_US']['SilvercartCustomerRebate']['Title']                             = 'Title';
 $lang['en_US']['SilvercartCustomerRebate']['TaxInfo']                           = 'amount for positions with %s%% Vat.';
+$lang['en_US']['SilvercartCustomerRebate']['MinimumOrderValue']                 = 'Minimum order value';
+
+$lang['en_US']['SilvercartCustomerRebateLanguage']['SINGULARNAME']              = _t('Silvercart.TRANSLATION');
+$lang['en_US']['SilvercartCustomerRebateLanguage']['PLURALNAME']                = _t('Silvercart.TRANSLATIONS');
