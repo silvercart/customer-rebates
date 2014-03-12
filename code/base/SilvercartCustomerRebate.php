@@ -336,6 +336,10 @@ class SilvercartCustomerRebate extends DataObject {
         $validProductGroups = $this->SilvercartProductGroups()->map();
         $positionNum        = 1;
         foreach ($cart->SilvercartShoppingCartPositions() as $position) {
+            if ($position instanceof SilvercartCustomerRebateShoppingCartPosition) {
+                $positionNum++;
+                continue;
+            }
             $product = $position->SilvercartProduct();
             $position->PositionNum = $positionNum;
             if (array_key_exists($product->SilvercartProductGroupID, $validProductGroups)) {

@@ -302,7 +302,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
      * @return DataObjectSet
      * 
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 18.07.2013
+     * @since 12.03.2014
      */
     public function splitForTaxRates(DataObjectSet $taxRates) {
         if (is_null($this->splittedPositions)) {
@@ -322,6 +322,9 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
                     $amounts = array();
 
                     foreach ($shoppingCartPositions as $shoppingCartPosition) {
+                        if ($shoppingCartPosition instanceof SilvercartCustomerRebateShoppingCartPosition) {
+                            continue;
+                        }
                         $taxRate = $shoppingCartPosition->SilvercartProduct()->getTaxRate();
 
                         if (!array_key_exists($taxRate, $amounts)) {
