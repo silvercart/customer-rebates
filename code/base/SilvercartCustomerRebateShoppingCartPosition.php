@@ -138,6 +138,15 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
     }
     
     /**
+     * Returns the short description wihtout HTML.
+     * 
+     * @return string
+     */
+    public function getShortDescription() {
+        return strip_tags($this->Title);
+    }
+    
+    /**
      * Returns the Name.
      * 
      * @return string
@@ -200,7 +209,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
             if (!is_null($rebate)) {
                 $priceTotal = $rebate->getRebateValueForShoppingCart() * -1;
             }
-            $this->setPriceTotal($priceTotal);
+            $this->setPriceTotal(round($priceTotal, 2));
         }
         return $this->priceTotal;
     }
@@ -214,7 +223,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
         if (is_null($this->priceNetTotal)) {
             $priceTotal = $this->getPriceTotal();
             $priceNetTotal = $priceTotal - $this->getTaxAmount();
-            $this->priceNetTotal = $priceNetTotal;
+            $this->priceNetTotal = round($priceNetTotal,2);
         }
         return $this->priceNetTotal;
     }
