@@ -297,7 +297,13 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
     public function getCustomerRebate() {
         $rebate = null;
         if (Member::currentUser() instanceof Member) {
+             $currentLocale          = i18n::get_locale();
+            // $rebateLocale =  SilvercartCustomerRebate::getLanguage();
+           // var_dump($rebateLocale); exit();
+            if ($currentLocale == 'de_DE'){
             $rebate = Member::currentUser()->getCustomerRebate();
+           //  var_dump($rebate);exit();
+            }
         }
         return $rebate;
     }
