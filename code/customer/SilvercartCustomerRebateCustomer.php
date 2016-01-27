@@ -115,7 +115,7 @@ class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
                 // Rebate is restricted to newsletter recipients but 
                 // the customer did not subscribe to newsletter.
                 $rebate = null;
-            } elseif ($rebate->SilvercartProductGroups()->Count() > 0 &&
+            } elseif ($rebate->getRelatedProductGroups()->Count() > 0 &&
                       $rebate->getRebatePositions()->Count() == 0) {
                 $rebate = null;
             }

@@ -110,6 +110,13 @@ class SilvercartCustomerRebate extends DataObject {
      * @var DataObjectSet
      */
     protected $rebatePositions = null;
+    
+    /**
+     * The related product groups.
+     *
+     * @var DataObjectSet
+     */
+    protected $relatedProductGroups = null;
 
     /**
      * Returns the translated singular name of the object. If no translation exists
@@ -265,6 +272,27 @@ class SilvercartCustomerRebate extends DataObject {
     }
     
     /**
+     * Returns the related product groups or its translations.
+     * 
+     * @return DataObjectSet
+     */
+    public function getRelatedProductGroups() {
+        if ($this->SilvercartProductGroups()->Count() == 0) {
+            // Workaround to match translations of the phisical related product groups.
+            $query1 = 'SELECT "SCRSPG"."SilvercartProductGroupPageID" FROM "SilvercartCustomerRebate_SilvercartProductGroups" AS "SCRSPG" WHERE "SCRSPG"."SilvercartCustomerRebateID" = \'' . $this->ID . '\'';
+            $query2 = 'SELECT "STTG2"."TranslationGroupID" FROM "SiteTree_translationgroups" AS "STTG2" WHERE "STTG2"."OriginalID" IN (' . $query1 . ')';
+            $query3 = 'SELECT "STTG"."OriginalID" FROM "SiteTree_translationgroups" AS "STTG" WHERE "STTG"."OriginalID" NOT IN (' . $query1 . ') AND "STTG"."TranslationGroupID" IN (' . $query2 . ')';
+            $this->relatedProductGroups = DataObject::get('SilvercartProductGroupPage', '"SiteTree"."ID" IN (' . $query3 . ')');
+            if (!($this->relatedProductGroups instanceof DataObjectSet)) {
+                $this->relatedProductGroups = new DataObjectSet();
+            }
+        } else {
+            $this->relatedProductGroups = $this->SilvercartProductGroups();
+        }
+        return $this->relatedProductGroups;
+    }
+    
+    /**
      * Returns the rebate value for the current shopping cart.
      * 
      * @return float
@@ -276,7 +304,7 @@ class SilvercartCustomerRebate extends DataObject {
                 $this->doNotCallThisAsShoppingCartPlugin = true;
                 $cart = Member::currentUser()->SilvercartShoppingCart();
                 if ($cart instanceof SilvercartShoppingCart) {
-                    if ($this->SilvercartProductGroups()->Count() == 0) {
+                    if ($this->getRelatedProductGroups()->Count() == 0) {
                         // get rebate value from total amount
                         $total = $cart->getAmountTotalWithoutFees();
                         if ($this->Type == 'absolute') {
@@ -333,7 +361,7 @@ class SilvercartCustomerRebate extends DataObject {
     public function getRebatePositions() {
         $rebatePositions    = new DataObjectSet();
         $cart               = Member::currentUser()->SilvercartShoppingCart();
-        $validProductGroups = $this->SilvercartProductGroups()->map();
+        $validProductGroups = $this->getRelatedProductGroups()->map();
         $positionNum        = 1;
         foreach ($cart->SilvercartShoppingCartPositions() as $position) {
             if ($position instanceof SilvercartCustomerRebateShoppingCartPosition) {

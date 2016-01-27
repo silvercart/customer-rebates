@@ -125,7 +125,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
             if ($this->isSplittedPosition) {
                 $title .= ' (<i>' . sprintf(_t('SilvercartCustomerRebate.TaxInfo'), $this->getTaxRate()) . '</i>)';
             }
-            if ($this->getCustomerRebate()->SilvercartProductGroups()->Count() > 0) {
+            if ($this->getCustomerRebate()->getRelatedProductGroups()->Count() > 0) {
                 $positions = $this->getCustomerRebate()->getRebatePositions();
                 $nums = array();
                 foreach ($positions as $position) {
