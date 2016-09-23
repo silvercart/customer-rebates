@@ -37,7 +37,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var array
      */
-    public static $db = array(
+    private static $db = array(
         'ValidFrom'                      => 'Date',
         'ValidUntil'                     => 'Date',
         'Type'                           => "enum('absolute,percent','absolute')",
@@ -51,7 +51,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var array
      */
-    public static $has_one = array(
+    private static $has_one = array(
         'Group' => 'Group',
     );
     
@@ -60,7 +60,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var array
      */
-    public static $has_many = array(
+    private static $has_many = array(
         'SilvercartCustomerRebateLanguages' => 'SilvercartCustomerRebateLanguage',
     );
 
@@ -69,7 +69,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var array
      */
-    public static $many_many = array(
+    private static $many_many = array(
         'SilvercartProductGroups' => 'SilvercartProductGroupPage'
     );
     
@@ -78,7 +78,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var array
      */
-    public static $casting = array(
+    private static $casting = array(
         'Title'                 => 'Text',
         'MinimumOrderValueNice' => 'Text',
     );
@@ -88,7 +88,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var string
      */
-    public static $default_sort = 'ValidFrom DESC';
+    private static $default_sort = 'ValidFrom DESC';
 
     /**
      * indicator to prevent the module from loading.
@@ -107,14 +107,14 @@ class SilvercartCustomerRebate extends DataObject {
     /**
      * The rebate positions.
      *
-     * @var DataObjectSet
+     * @var ArrayList
      */
     protected $rebatePositions = null;
     
     /**
      * The related product groups.
      *
-     * @var DataObjectSet
+     * @var ArrayList
      */
     protected $relatedProductGroups = null;
 
@@ -203,23 +203,39 @@ class SilvercartCustomerRebate extends DataObject {
     }
     
     /**
+     * Scaffold a simple edit form for all properties on this dataobject,
+     * based on default {@link FormField} mapping in {@link DBField::scaffoldFormField()}.
+     * Field labels/titles will be auto generated from {@link DataObject::fieldLabels()}.
+     *
+     * @uses FormScaffolder
+     *
+     * @param array $_params Associative array passing through properties to {@link FormScaffolder}.
+     * 
+     * @return FieldList
+     * 
+     * @author Sebastian Diel <sdiel@pixeltricks.de>
+     * @since 23.09.2016
+     */
+    public function scaffoldFormFields($_params = null) {
+        parent::scaffoldFormFields(array_merge(
+                (array)$_params,
+                array(
+                    'fieldClasses' => array(
+                        'MinimumOrderValue' => 'SilvercartMoneyField',
+                    ),
+                )
+        ));
+    }
+    
+    /**
      * The cms fields.
      * 
      * @param array $params Params for scaffolding
      * 
-     * @return FieldSet
+     * @return FieldList
      */
-    public function getCMSFields($params = null) {
-        $fields = parent::getCMSFields(
-                array_merge(
-                        (array)$params,
-                        array(
-                            'fieldClasses' => array(
-                                'MinimumOrderValue' => 'SilvercartMoneyField',
-                            ),
-                        )
-                )
-        );
+    public function getCMSFields() {
+        $fields = parent::getCMSFields();
         
         $languageFields = SilvercartLanguageHelper::prepareCMSFields($this->getLanguage(true));
         foreach ($languageFields as $languageField) {
@@ -274,7 +290,7 @@ class SilvercartCustomerRebate extends DataObject {
     /**
      * Returns the related product groups or its translations.
      * 
-     * @return DataObjectSet
+     * @return SS_List
      */
     public function getRelatedProductGroups() {
         if ($this->SilvercartProductGroups()->Count() == 0) {
@@ -282,9 +298,9 @@ class SilvercartCustomerRebate extends DataObject {
             $query1 = 'SELECT "SCRSPG"."SilvercartProductGroupPageID" FROM "SilvercartCustomerRebate_SilvercartProductGroups" AS "SCRSPG" WHERE "SCRSPG"."SilvercartCustomerRebateID" = \'' . $this->ID . '\'';
             $query2 = 'SELECT "STTG2"."TranslationGroupID" FROM "SiteTree_translationgroups" AS "STTG2" WHERE "STTG2"."OriginalID" IN (' . $query1 . ')';
             $query3 = 'SELECT "STTG"."OriginalID" FROM "SiteTree_translationgroups" AS "STTG" WHERE "STTG"."OriginalID" NOT IN (' . $query1 . ') AND "STTG"."TranslationGroupID" IN (' . $query2 . ')';
-            $this->relatedProductGroups = DataObject::get('SilvercartProductGroupPage', '"SiteTree"."ID" IN (' . $query3 . ')');
-            if (!($this->relatedProductGroups instanceof DataObjectSet)) {
-                $this->relatedProductGroups = new DataObjectSet();
+            $this->relatedProductGroups = SilvercartProductGroupPage::get()->where('"SiteTree"."ID" IN (' . $query3 . ')');
+            if (!($this->relatedProductGroups instanceof DataList)) {
+                $this->relatedProductGroups = new ArrayList();
             }
         } else {
             $this->relatedProductGroups = $this->SilvercartProductGroups();
@@ -356,10 +372,10 @@ class SilvercartCustomerRebate extends DataObject {
     /**
      * Returns the positions to rebate.
      * 
-     * @return DataObjectSet
+     * @return ArrayList
      */
     public function getRebatePositions() {
-        $rebatePositions    = new DataObjectSet();
+        $rebatePositions    = new ArrayList();
         $cart               = Member::currentUser()->SilvercartShoppingCart();
         $validProductGroups = $this->getRelatedProductGroups()->map();
         $positionNum        = 1;
@@ -480,13 +496,13 @@ class SilvercartCustomerRebate extends DataObject {
      * @param array        $excludeShoppingCartPositions Positions that shall not be counted; can contain the ID or the className of the position
      * @param Bool         $createForms                  Indicates wether the form objects should be created or not
      *
-     * @return DataObjectSet
+     * @return ArrayList
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013
      */
     public function ShoppingCartPositions(SilvercartShoppingCart $silvercartShoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) {
-        $rebatePositions = new DataObjectSet();
+        $rebatePositions = new ArrayList();
         
         if (!$this->doNotCallThisAsShoppingCartPlugin &&
             $taxable &&
@@ -516,7 +532,7 @@ class SilvercartCustomerRebate extends DataObject {
      * @param SilvercartShoppingCart $silvercartShoppingCart The Silvercart shoppingcart object
      * @param Member                 $member                 The member object
      *
-     * @return DataObjectSet
+     * @return SS_List
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013

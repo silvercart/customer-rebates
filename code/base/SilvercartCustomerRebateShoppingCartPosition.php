@@ -37,7 +37,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
      *
      * @var array
      */
-    public static $casting = array(
+    private static $casting = array(
         'Title'                 => 'HtmlText',
         'Name'                  => 'HtmlText',
         'Quantity'              => 'Int',
@@ -57,7 +57,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
     /**
      * Rebate positions splitted by available tax rates.
      *
-     * @var DataObjectSet
+     * @var ArrayList
      */
     protected $splittedPositions = null;
     
@@ -306,17 +306,17 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
      * Splits the rebates total price dependent on the available tax rates if
      * needed.
      * 
-     * @param DataObjectSet $taxRates Tax rates to split rebate for.
+     * @param SS_List $taxRates Tax rates to split rebate for.
      * 
-     * @return DataObjectSet
+     * @return ArrayList
      * 
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 12.03.2014
      */
-    public function splitForTaxRates(DataObjectSet $taxRates) {
+    public function splitForTaxRates(SS_List $taxRates) {
         if (is_null($this->splittedPositions)) {
 
-            $positions = new DataObjectSet();
+            $positions = new ArrayList();
             if ($taxRates->Count() == 1) {
                 $positions->push($this);
             } elseif ($taxRates->find('Rate', $this->Tax->Rate)->AmountRaw + $this->getTaxAmount() >= 0) {

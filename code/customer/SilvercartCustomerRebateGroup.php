@@ -30,53 +30,39 @@
  * @since 17.07.2013
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
  */
-class SilvercartCustomerRebateGroup extends DataObjectDecorator {
-    
+class SilvercartCustomerRebateGroup extends DataExtension {
+
     /**
-     * Extra statics.
-     * 
+     * has_many relations
+     *
      * @return array
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
      */
-    public function extraStatics() {
-        return array(
-            'has_many' => array(
-                'SilvercartCustomerRebates' => 'SilvercartCustomerRebate',
-            ),
-        );
-    }
+    private static $has_many = array(
+        'SilvercartCustomerRebates' => 'SilvercartCustomerRebate',
+    );
     
     /**
      * Updates the cms fields.
-     * 
-     * @param FieldSet &$fields Fields
-     * 
-     * @return void
+     *
+     * @param FieldList $fields The original FieldList
+     *
+     * @return FieldList
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 21.07.2013
+     * @since 07.07.2016
      */
-    public function updateCMSFields(FieldSet &$fields) {
+    public function updateCMSFields(FieldList $fields) {
         $fields->addFieldToTab('Root.Members', new TextField('Code', _t('Group.CODE')));
         if ($this->owner->ID) {
-            $rebatesTable = new ComplexTableField(
-                            $this->owner,
-                            'SilvercartCustomerRebates',
-                            'SilvercartCustomerRebate',
-                            null,
-                            null,
-                            '"GroupID" = ' . $this->owner->ID
+            $silvercartCustomerRebatesField = new GridField(
+                    'SilvercartCustomerRebates',
+                    $this->owner->fieldLabel('SilvercartCustomerRebates'),
+                    $this->owner->SilvercartCustomerRebates(),
+                    SilvercartGridFieldConfig_RelationEditor::create()
             );
-            $rebatesTable->pageSize = 50;
-            $rebatesTable->setPermissions(array(
-                'add',
-                'edit',
-                'delete',
-            ));
+            $silvercartCustomerRebatesField->getConfig()->removeComponentsByType('GridFieldAddExistingAutocompleter');
             $fields->findOrMakeTab('Root.SilvercartCustomerRebates', $this->owner->fieldLabel('SilvercartCustomerRebates'));
-            $fields->addFieldToTab("Root.SilvercartCustomerRebates", $rebatesTable);
+            $fields->addFieldToTab('Root.SilvercartCustomerRebates', $silvercartCustomerRebatesField);
         }
     }
     

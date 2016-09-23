@@ -30,22 +30,15 @@
  * @since 17.07.2013
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
  */
-class SilvercartCustomerRebateProductGroupPage extends DataObjectDecorator {
-    
+class SilvercartCustomerRebateProductGroupPage extends DataExtension {
+
     /**
-     * Extra statics
-     * 
+     * belongs_many_many relations
+     *
      * @return array
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 10.03.2014
      */
-    public function extraStatics() {
-        return array(
-            'belongs_many_many' => array(
-                'SilvercartCustomerRebates' => 'SilvercartCustomerRebate',
-            ),
-        );
-    }
+    private static $belongs_many_many = array(
+        'SilvercartCustomerRebates' => 'SilvercartCustomerRebate',
+    );
     
 }

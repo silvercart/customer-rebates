@@ -30,7 +30,7 @@
  * @since 17.07.2013
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
  */
-class SilvercartCustomerRebateCustomer extends DataObjectDecorator {
+class SilvercartCustomerRebateCustomer extends DataExtension {
     
     /**
      * Current customer rebate.
