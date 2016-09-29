@@ -389,7 +389,11 @@ class SilvercartCustomerRebate extends DataObject {
             if (array_key_exists($product->SilvercartProductGroupID, $validProductGroups)) {
                 $rebatePositions->push($position);
             } elseif ($product->SilvercartProductGroupMirrorPages()->Count() > 0) {
-                $mirrorProductGroupIDs = array_keys($product->SilvercartProductGroupMirrorPages()->map());
+                $map = $product->SilvercartProductGroupMirrorPages()->map();
+                if ($map instanceof SS_Map) {
+                    $map = $map->toArray();
+                }
+                $mirrorProductGroupIDs = array_keys($map);
                 foreach ($mirrorProductGroupIDs as $mirrorProductGroupID) {
                     if (array_key_exists($mirrorProductGroupID, $validProductGroups)) {
                         $rebatePositions->push($position);

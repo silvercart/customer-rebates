@@ -44,7 +44,7 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
      *
      * @var bool
      */
-    protected $doNotCallThisAsShoppingCartPlugin = false;
+    protected static $doNotCallThisAsShoppingCartPlugin = false;
     
     /**
      * Returns whether there is a current rebate.
@@ -72,7 +72,7 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
     public function getCustomerRebate() {
         if (is_null($this->customerRebate)) {
             $rebate = null;
-            if (!$this->doNotCallThisAsShoppingCartPlugin) {
+            if (!self::$doNotCallThisAsShoppingCartPlugin) {
                 $groups = $this->owner->Groups();
                 foreach ($groups as $group) {
                     if ($group->hasValidCustomerRebate()) {
@@ -103,7 +103,7 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
      */
     protected function checkRebateConditions($rebate) {
         if ($rebate instanceof SilvercartCustomerRebate) {
-            $this->doNotCallThisAsShoppingCartPlugin = true;
+            self::$doNotCallThisAsShoppingCartPlugin = true;
             $cart  = $this->owner->getCart();
             $total = $cart->getAmountTotalWithoutFees(array('SilvercartCustomerRebate'));
             if ($total->getAmount() < $rebate->MinimumOrderValue->getAmount()) {
@@ -119,7 +119,7 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
                       $rebate->getRebatePositions()->Count() == 0) {
                 $rebate = null;
             }
-            $this->doNotCallThisAsShoppingCartPlugin = false;
+            self::$doNotCallThisAsShoppingCartPlugin = false;
         }
         return $rebate;
     }
