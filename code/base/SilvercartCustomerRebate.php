@@ -42,7 +42,7 @@ class SilvercartCustomerRebate extends DataObject {
         'ValidUntil'                     => 'Date',
         'Type'                           => "enum('absolute,percent','absolute')",
         'Value'                          => 'Float',
-        'MinimumOrderValue'              => 'Money',
+        'MinimumOrderValue'              => 'SilvercartMoney',
         'RestrictToNewsletterRecipients' => 'Boolean',
     );
     
@@ -203,31 +203,6 @@ class SilvercartCustomerRebate extends DataObject {
     }
     
     /**
-     * Scaffold a simple edit form for all properties on this dataobject,
-     * based on default {@link FormField} mapping in {@link DBField::scaffoldFormField()}.
-     * Field labels/titles will be auto generated from {@link DataObject::fieldLabels()}.
-     *
-     * @uses FormScaffolder
-     *
-     * @param array $_params Associative array passing through properties to {@link FormScaffolder}.
-     * 
-     * @return FieldList
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 23.09.2016
-     */
-    public function scaffoldFormFields($_params = null) {
-        parent::scaffoldFormFields(array_merge(
-                (array)$_params,
-                array(
-                    'fieldClasses' => array(
-                        'MinimumOrderValue' => 'SilvercartMoneyField',
-                    ),
-                )
-        ));
-    }
-    
-    /**
      * The cms fields.
      * 
      * @param array $params Params for scaffolding
@@ -235,12 +210,7 @@ class SilvercartCustomerRebate extends DataObject {
      * @return FieldList
      */
     public function getCMSFields() {
-        $fields = parent::getCMSFields();
-        
-        $languageFields = SilvercartLanguageHelper::prepareCMSFields($this->getLanguage(true));
-        foreach ($languageFields as $languageField) {
-            $fields->insertBefore($languageField, 'ValidFrom');
-        }
+        $fields = SilvercartDataObject::getCMSFields($this);
         
         $validFromField     = $fields->dataFieldByName('ValidFrom');
         $validUntilField    = $fields->dataFieldByName('ValidUntil');
@@ -386,7 +356,7 @@ class SilvercartCustomerRebate extends DataObject {
             }
             $product = $position->SilvercartProduct();
             $position->PositionNum = $positionNum;
-            if (array_key_exists($product->SilvercartProductGroupID, $validProductGroups)) {
+            if (array_key_exists($product->SilvercartProductGroupID, $validProductGroups->toArray())) {
                 $rebatePositions->push($position);
             } elseif ($product->SilvercartProductGroupMirrorPages()->Count() > 0) {
                 $map = $product->SilvercartProductGroupMirrorPages()->map();
