@@ -1,0 +1,19 @@
+en:
+    SilvercartCustomerRebate:
+        PLURALNAME: "Rebates"
+        SINGULARNAME: "Rebate"
+        MinimumOrderValue: "Minimum order value"
+        RestrictToNewsletterRecipients: "Restrict to newsletter recipients"
+        SilvercartProductGroups: "Restrict to the folowing product groups"
+        TaxInfo: "amount for positions with %s%% Vat."
+        Title: "Title"
+        Type: "Type"
+        TypeAbsolute: "Absolute"
+        TypePercent: "Percent"
+        ValidForPositions: "Rebate is valid for position(s): %s"
+        ValidFrom: "Valid from"
+        ValidUntil: "Valid until"
+        Value: "Value"
+    SilvercartCustomerRebateLanguage:
+        PLURALNAME: "Translations"
+        SINGULARNAME: "Translation"
