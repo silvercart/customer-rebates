@@ -1,0 +1,21 @@
+{
+    "name": "silvercart/customer-rebates",
+    "type": "silverstripe-module",
+    "description": "Customer rebates module for the SilverCart ecommerce module for SilverStripe",
+    "homepage": "http://www.silvercart.org",
+    "license": "LGPL-3.0-or-later",
+    "keywords": ["silverstripe", "silvercart", "ecommerce", "shop", "webshop", "online shop", "rebate", "rebates", "marketing"],
+    "authors": [
+        {
+            "name": "SilverCart",
+            "homepage": "http://www.silvercart.org"
+        },
+        {
+            "name": "pixeltricks",
+            "homepage": "http://www.pixeltricks.de"
+        }
+    ],
+    "require": {
+        "silvercart/silvercart": "~4.1"
+    }
+}

@@ -1,0 +1,15 @@
+SilverCart\CustomerRebates\Model\CustomerRebate:
+  extensions:
+    - SilverCart\Model\Translation\TranslatableDataObjectExtension
+SilverCart\CustomerRebates\Model\CustomerRebateTranslation:
+  extensions:
+    - SilverCart\Model\Translation\TranslationExtension
+SilverCart\Model\Pages\ProductGroupPage:
+  extensions:
+    - SilverCart\CustomerRebates\Extensions\ProductGroupPageExtension
+SilverStripe\Security\Group:
+  extensions:
+    - SilverCart\CustomerRebates\Extensions\GroupExtension
+SilverStripe\Security\Member:
+  extensions:
+    - SilverCart\CustomerRebates\Extensions\MemberExtension
