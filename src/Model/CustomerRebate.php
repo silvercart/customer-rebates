@@ -6,10 +6,12 @@ use SilverCart\Dev\Tools;
 use SilverCart\Model\Customer\Customer;
 use SilverCart\Model\Pages\ProductGroupPage;
 use SilverCart\Model\Order\ShoppingCart;
+use SilverCart\Model\Order\ShoppingCartPosition as SilverCartShoppingCartPosition;
 use SilverCart\ORM\DataObjectExtension;
 use SilverCart\ORM\FieldType\DBMoney;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
+use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TreeMultiselectField;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataList;
@@ -18,6 +20,7 @@ use SilverStripe\ORM\FieldType\DBBoolean;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBFloat;
 use SilverStripe\ORM\Map;
+use SilverStripe\ORM\SS_List;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 
@@ -123,8 +126,9 @@ class CustomerRebate extends DataObject
      * 
      * @return string
      */
-    public function singular_name() {
-        return Tools::singular_name_for($this);
+    public function singular_name() : string
+    {
+        return (string) Tools::singular_name_for($this);
     }
 
 
@@ -134,8 +138,9 @@ class CustomerRebate extends DataObject
      * 
      * @return string
      */
-    public function plural_name() {
-        return Tools::plural_name_for($this);
+    public function plural_name() : string
+    {
+        return (string) Tools::plural_name_for($this);
     }
 
     /**
@@ -148,7 +153,7 @@ class CustomerRebate extends DataObject
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 12.12.2018
      */
-    public function fieldLabels($includerelations = true)
+    public function fieldLabels($includerelations = true) : array
     {
         $this->beforeUpdateFieldLabels(function(&$labels) {
             $labels = array_merge(
@@ -180,7 +185,7 @@ class CustomerRebate extends DataObject
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 12.12.2018
      */
-    public function summaryFields()
+    public function summaryFields() : array
     {
         $summaryFields = [
             'Title'                 => $this->fieldLabel('Title'),
@@ -201,7 +206,7 @@ class CustomerRebate extends DataObject
      * 
      * @return FieldList
      */
-    public function getCMSFields()
+    public function getCMSFields() : FieldList
     {
         $fields = DataObjectExtension::getCMSFields($this);
         
@@ -234,11 +239,11 @@ class CustomerRebate extends DataObject
     /**
      * getter for the pseudo attribute title
      *
-     * @return string the title in the corresponding frontend language 
+     * @return string 
      */
-    public function getTitle()
+    public function getTitle() : string
     {
-        return $this->getTranslationFieldValue('Title');
+        return (string) $this->getTranslationFieldValue('Title');
     }
     
     /**
@@ -246,29 +251,31 @@ class CustomerRebate extends DataObject
      *
      * @return string
      */
-    public function getMinimumOrderValueNice()
+    public function getMinimumOrderValueNice() : string
     {
-        return $this->MinimumOrderValue->Nice();
+        return (string) $this->MinimumOrderValue->Nice();
     }
     
     /**
      * Returns the related product groups or its translations.
      * 
-     * @return \SilverStripe\ORM\SS_List
+     * @return SS_List
      */
-    public function getRelatedProductGroups()
+    public function getRelatedProductGroups() : SS_List
     {
-        if ($this->ProductGroups()->count() == 0) {
-            // Workaround to match translations of the physical related product groups.
-            $query1 = 'SELECT "SCRSPG"."SilvercartProductGroupPageID" FROM "SilvercartCustomerRebate_ProductGroups" AS "SCRSPG" WHERE "SCRSPG"."SilvercartCustomerRebateID" = \'' . $this->ID . '\'';
-            $query2 = 'SELECT "STTG2"."TranslationGroupID" FROM "SiteTree_translationgroups" AS "STTG2" WHERE "STTG2"."OriginalID" IN (' . $query1 . ')';
-            $query3 = 'SELECT "STTG"."OriginalID" FROM "SiteTree_translationgroups" AS "STTG" WHERE "STTG"."OriginalID" NOT IN (' . $query1 . ') AND "STTG"."TranslationGroupID" IN (' . $query2 . ')';
-            $this->relatedProductGroups = ProductGroupPage::get()->where('"SiteTree"."ID" IN (' . $query3 . ')');
-            if (!($this->relatedProductGroups instanceof DataList)) {
-                $this->relatedProductGroups = ArrayList::create();
+        if (is_null($this->relatedProductGroups)) {
+            if ($this->ProductGroups()->count() == 0) {
+                // Workaround to match translations of the physical related product groups.
+                $query1 = 'SELECT "SCRSPG"."SilvercartProductGroupPageID" FROM "SilvercartCustomerRebate_ProductGroups" AS "SCRSPG" WHERE "SCRSPG"."SilvercartCustomerRebateID" = \'' . $this->ID . '\'';
+                $query2 = 'SELECT "STTG2"."TranslationGroupID" FROM "SiteTree_translationgroups" AS "STTG2" WHERE "STTG2"."OriginalID" IN (' . $query1 . ')';
+                $query3 = 'SELECT "STTG"."OriginalID" FROM "SiteTree_translationgroups" AS "STTG" WHERE "STTG"."OriginalID" NOT IN (' . $query1 . ') AND "STTG"."TranslationGroupID" IN (' . $query2 . ')';
+                $this->relatedProductGroups = ProductGroupPage::get()->where('"SiteTree"."ID" IN (' . $query3 . ')');
+                if (!($this->relatedProductGroups instanceof DataList)) {
+                    $this->relatedProductGroups = ArrayList::create();
+                }
+            } else {
+                $this->relatedProductGroups = $this->ProductGroups();
             }
-        } else {
-            $this->relatedProductGroups = $this->ProductGroups();
         }
         return $this->relatedProductGroups;
     }
@@ -278,7 +285,7 @@ class CustomerRebate extends DataObject
      * 
      * @return float
      */
-    public function getRebateValueForShoppingCart()
+    public function getRebateValueForShoppingCart() : float
     {
         $value = 0;
         if (!$this->doNotCallThisAsShoppingCartPlugin) {
@@ -313,7 +320,7 @@ class CustomerRebate extends DataObject
      * 
      * @return float
      */
-    protected function getRebateValueForShoppingCartPositions()
+    protected function getRebateValueForShoppingCartPositions() : float
     {
         $value       = 0;
         $totalAmount = 0;
@@ -341,38 +348,58 @@ class CustomerRebate extends DataObject
      * 
      * @return ArrayList
      */
-    public function getRebatePositions()
+    public function getRebatePositions() : ArrayList
     {
-        $rebatePositions    = ArrayList::create();
-        $cart               = Customer::currentUser()->ShoppingCart();
-        $validProductGroups = $this->getRelatedProductGroups()->map();
-        $positionNum        = 1;
+        $rebatePositions = ArrayList::create();
+        $cart            = Customer::currentUser()->ShoppingCart();
+        $positionNum     = 1;
         foreach ($cart->ShoppingCartPositions() as $position) {
             if ($position instanceof ShoppingCartPosition) {
                 $positionNum++;
                 continue;
             }
-            $product = $position->Product();
             $position->PositionNum = $positionNum;
-            if (array_key_exists($product->ProductGroupID, $validProductGroups->toArray())) {
+            if ($this->positionIsMatchingWithRebate($position)) {
                 $rebatePositions->push($position);
-            } elseif ($product->ProductGroupMirrorPages()->exists()) {
-                $map = $product->ProductGroupMirrorPages()->map();
-                if ($map instanceof Map) {
-                    $map = $map->toArray();
-                }
-                $mirrorProductGroupIDs = array_keys($map);
-                foreach ($mirrorProductGroupIDs as $mirrorProductGroupID) {
-                    if (array_key_exists($mirrorProductGroupID, $validProductGroups)) {
-                        $rebatePositions->push($position);
-                        break;
-                    }
-                }
             }
             $positionNum++;
         }
         
         return $rebatePositions;
+    }
+    
+    /**
+     * Checks whether the given position is matching with this customer rebate.
+     * 
+     * @param SilverCartShoppingCartPosition $position Position to check
+     * 
+     * @return bool
+     * 
+     * @author Sebastian Diel <sdiel@pixeltricks.de>
+     * @since 13.12.2018
+     */
+    public function positionIsMatchingWithRebate(SilverCartShoppingCartPosition $position) : bool
+    {
+        $positionIsMatchingWithRebate = false;
+        $product                      = $position->Product();
+        $validProductGroups           = $this->getRelatedProductGroups()->map();
+        if (array_key_exists($product->ProductGroupID, $validProductGroups->toArray())) {
+            $positionIsMatchingWithRebate = true;
+        } elseif ($product->ProductGroupMirrorPages()->exists()) {
+            $map = $product->ProductGroupMirrorPages()->map();
+            if ($map instanceof Map) {
+                $map = $map->toArray();
+            }
+            $mirrorProductGroupIDs = array_keys($map);
+            foreach ($mirrorProductGroupIDs as $mirrorProductGroupID) {
+                if (array_key_exists($mirrorProductGroupID, $validProductGroups)) {
+                    $positionIsMatchingWithRebate = true;
+                    break;
+                }
+            }
+        }
+        $this->extend('updatePositionIsMatchingWithRebate', $position, $positionIsMatchingWithRebate);
+        return $positionIsMatchingWithRebate;
     }
 
     /**
@@ -380,7 +407,7 @@ class CustomerRebate extends DataObject
      * 
      * @return ShoppingCart
      */
-    public function getShoppingCart()
+    public function getShoppingCart() : ?ShoppingCart
     {
         $this->doNotCallThisAsShoppingCartPlugin = true;
         if (is_null($this->shoppingCart)) {
@@ -400,7 +427,8 @@ class CustomerRebate extends DataObject
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 29.10.2013
      */
-    public function loadObjectForShoppingCart(ShoppingCart $shoppingCart) {
+    public function loadObjectForShoppingCart(ShoppingCart $shoppingCart) : ?CustomerRebate
+    {
         $object = null;
         if (!$this->doNotCallThisAsShoppingCartPlugin
          && Customer::currentUser() instanceof Member
@@ -413,13 +441,14 @@ class CustomerRebate extends DataObject
     /**
      * Hook for the init method of the shopping cart.
      *
-     * @return void
+     * @return bool
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013
      */
-    public function ShoppingCartInit() {
-        $result = null;
+    public function ShoppingCartInit() : bool
+    {
+        $result = true;
         if (!$this->doNotCallThisAsShoppingCartPlugin) {
             $controller = Controller::curr();
             // Don't initialise when called from within the cms
@@ -434,28 +463,26 @@ class CustomerRebate extends DataObject
      * Performs checks related to the shopping cart entries to ensure that
      * the rebate is allowed to be placed in the cart.
      *
-     * @param ShoppingCart $ShoppingCart                 the shopping cart to check against
+     * @param ShoppingCart $shoppingCart                 the shopping cart to check against
      * @param Member       $member                       the shopping cart to check against
      * @param array        $excludeShoppingCartPositions Positions that shall not be counted
      *
-     * @return void
+     * @return bool
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013
      */
-    public function performShoppingCartConditionsCheck(ShoppingCart $shoppingCart, $member, $excludeShoppingCartPositions = false) {
+    public function performShoppingCartConditionsCheck(ShoppingCart $shoppingCart, $member, $excludeShoppingCartPositions = false) : bool
+    {
         $result = false;
-        
         if (!$this->doNotCallThisAsShoppingCartPlugin) {
-            if ($this->getShoppingCart()->ShoppingCartPositions()->Count() > 0) {
-                $this->doNotCallThisAsShoppingCartPlugin = false;
-                if (Customer::currentUser() instanceof Member) {
-                    $result = Customer::currentUser()->hasCustomerRebate();
-                }
+            if ($shoppingCart->ShoppingCartPositions()->exists()
+             && $member->hasCustomerRebate()
+            ) {
+                $result = true;
             }
             $this->doNotCallThisAsShoppingCartPlugin = false;
         }
-        
         return $result;
     }
 
@@ -475,7 +502,8 @@ class CustomerRebate extends DataObject
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013
      */
-    public function ShoppingCartPositions(ShoppingCart $shoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) {
+    public function ShoppingCartPositions(ShoppingCart $shoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) : ArrayList
+    {
         $rebatePositions = ArrayList::create();
         
         if (!$this->doNotCallThisAsShoppingCartPlugin
@@ -507,13 +535,13 @@ class CustomerRebate extends DataObject
      * @param ShoppingCart $shoppingCart The SilverCart ShoppingCart object
      * @param Member       $member       The member object
      *
-     * @return SS_List
+     * @return ArrayList
      *
      * @author Sebastian Diel <sdiel@pixeltricks.de>
      * @since 17.07.2013
      */
-    public function TaxableShoppingCartPositions(ShoppingCart $shoppingCart, Member $member) {
-        $positions = $this->ShoppingCartPositions($shoppingCart, $member, true);
-        return $positions;
+    public function TaxableShoppingCartPositions(ShoppingCart $shoppingCart, Member $member) : ArrayList
+    {
+        return $this->ShoppingCartPositions($shoppingCart, $member, true);
     }
 }
