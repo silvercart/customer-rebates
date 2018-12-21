@@ -14,13 +14,12 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TreeMultiselectField;
 use SilverStripe\ORM\ArrayList;
-use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBBoolean;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBFloat;
 use SilverStripe\ORM\Map;
-use SilverStripe\ORM\SS_List;
+use SilverStripe\ORM\ManyManyList;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 
@@ -259,23 +258,12 @@ class CustomerRebate extends DataObject
     /**
      * Returns the related product groups or its translations.
      * 
-     * @return SS_List
+     * @return ManyManyList
      */
-    public function getRelatedProductGroups() : SS_List
+    public function getRelatedProductGroups() : ManyManyList
     {
         if (is_null($this->relatedProductGroups)) {
-            if ($this->ProductGroups()->count() == 0) {
-                // Workaround to match translations of the physical related product groups.
-                $query1 = 'SELECT "SCRSPG"."SilvercartProductGroupPageID" FROM "SilvercartCustomerRebate_ProductGroups" AS "SCRSPG" WHERE "SCRSPG"."SilvercartCustomerRebateID" = \'' . $this->ID . '\'';
-                $query2 = 'SELECT "STTG2"."TranslationGroupID" FROM "SiteTree_translationgroups" AS "STTG2" WHERE "STTG2"."OriginalID" IN (' . $query1 . ')';
-                $query3 = 'SELECT "STTG"."OriginalID" FROM "SiteTree_translationgroups" AS "STTG" WHERE "STTG"."OriginalID" NOT IN (' . $query1 . ') AND "STTG"."TranslationGroupID" IN (' . $query2 . ')';
-                $this->relatedProductGroups = ProductGroupPage::get()->where('"SiteTree"."ID" IN (' . $query3 . ')');
-                if (!($this->relatedProductGroups instanceof DataList)) {
-                    $this->relatedProductGroups = ArrayList::create();
-                }
-            } else {
-                $this->relatedProductGroups = $this->ProductGroups();
-            }
+            $this->relatedProductGroups = $this->ProductGroups();
         }
         return $this->relatedProductGroups;
     }
