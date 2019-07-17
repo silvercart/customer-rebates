@@ -23,8 +23,8 @@
 
 SilvercartShoppingCart::registerModule('SilvercartCustomerRebate');
 
-Object::add_extension('Group',                              'SilvercartCustomerRebateGroup');
-Object::add_extension('Member',                             'SilvercartCustomerRebateCustomer');
-Object::add_extension('SilvercartCustomerRebate',           'SilvercartDataObjectMultilingualDecorator');
-Object::add_extension('SilvercartCustomerRebateLanguage',   'SilvercartLanguageDecorator');
-Object::add_extension('SilvercartProductGroupPage',         'SilvercartCustomerRebateProductGroupPage');
+Group::add_extension('SilvercartCustomerRebateGroup');
+Member::add_extension('SilvercartCustomerRebateCustomer');
+SilvercartCustomerRebate::add_extension('SilvercartDataObjectMultilingualDecorator');
+SilvercartCustomerRebateLanguage::add_extension('SilvercartLanguageDecorator');
+SilvercartProductGroupPage::add_extension('SilvercartCustomerRebateProductGroupPage');
