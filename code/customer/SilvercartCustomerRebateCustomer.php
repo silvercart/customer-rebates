@@ -38,6 +38,12 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
      * @var SilvercartCustomerRebate
      */
     protected $customerRebate = null;
+    /**
+     * List of valid customer rebates.
+     *
+     * @var ArrayList
+     */
+    protected $customerRebates = null;
     
     /**
      * indicator to prevent the module from loading.
@@ -88,6 +94,30 @@ class SilvercartCustomerRebateCustomer extends DataExtension {
             $this->customerRebate = $rebate;
         }
         return $this->customerRebate;
+    }
+    
+    /**
+     * Returns the list of valid customer rebates.
+     * 
+     * @return ArrayList
+     */
+    public function getCustomerRebates()
+    {
+        if (is_null($this->customerRebates)) {
+            $this->customerRebates = ArrayList::create();
+            if (!self::$doNotCallThisAsShoppingCartPlugin) {
+                $groups = $this->owner->Groups();
+                foreach ($groups as $group) {
+                    if ($group->hasValidCustomerRebate()) {
+                        $rebate = $this->checkRebateConditions($group->getValidCustomerRebate());
+                        if (!is_null($rebate)) {
+                            $this->customerRebates->push($rebate);
+                        }
+                    }
+                }
+            }
+        }
+        return $this->customerRebates;
     }
     
     /**

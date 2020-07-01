@@ -95,7 +95,7 @@ class SilvercartCustomerRebate extends DataObject {
      *
      * @var bool
      */
-    public $doNotCallThisAsShoppingCartPlugin = false;
+    public static $doNotCallThisAsShoppingCartPlugin = false;
 
     /**
      * The shopping cart.
@@ -285,9 +285,9 @@ class SilvercartCustomerRebate extends DataObject {
      */
     public function getRebateValueForShoppingCart() {
         $value = 0;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             if (Member::currentUser() instanceof Member) {
-                $this->doNotCallThisAsShoppingCartPlugin = true;
+                self::$doNotCallThisAsShoppingCartPlugin = true;
                 $cart = Member::currentUser()->SilvercartShoppingCart();
                 if ($cart instanceof SilvercartShoppingCart) {
                     if ($this->getRelatedProductGroups()->Count() == 0) {
@@ -305,7 +305,7 @@ class SilvercartCustomerRebate extends DataObject {
                         // get rebate value from single positions.
                         $value = $this->getRebateValueForShoppingCartPositions();
                     }
-                    $this->doNotCallThisAsShoppingCartPlugin = false;
+                    self::$doNotCallThisAsShoppingCartPlugin = false;
                 }
             }
         }
@@ -383,7 +383,7 @@ class SilvercartCustomerRebate extends DataObject {
      * @return SilvercartShoppingCart
      */
     public function getShoppingCart() {
-        $this->doNotCallThisAsShoppingCartPlugin = true;
+        self::$doNotCallThisAsShoppingCartPlugin = true;
         if (is_null($this->shoppingCart)) {
             $this->shoppingCart = Member::currentUser()->SilvercartShoppingCart();
         }
@@ -403,7 +403,7 @@ class SilvercartCustomerRebate extends DataObject {
      */
     public function loadObjectForShoppingCart(SilvercartShoppingCart $silvercartShoppingCart) {
         $object = null;
-        if (!$this->doNotCallThisAsShoppingCartPlugin &&
+        if (!self::$doNotCallThisAsShoppingCartPlugin &&
             Member::currentUser() instanceof Member) {
             $object = Member::currentUser()->getCustomerRebate();
         }
@@ -420,7 +420,7 @@ class SilvercartCustomerRebate extends DataObject {
      */
     public function ShoppingCartInit() {
         $result = null;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             $controller = Controller::curr();
             // Don't initialise when called from within the cms
             if (!$controller->isFrontendPage) {
@@ -446,14 +446,14 @@ class SilvercartCustomerRebate extends DataObject {
     public function performShoppingCartConditionsCheck(SilvercartShoppingCart $silvercartShoppingCart, $member, $excludeShoppingCartPositions = false) {
         $result = false;
         
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             if ($this->getShoppingCart()->SilvercartShoppingCartPositions()->Count() > 0) {
-                $this->doNotCallThisAsShoppingCartPlugin = false;
+                self::$doNotCallThisAsShoppingCartPlugin = false;
                 if (Member::currentUser() instanceof Member) {
                     $result = Member::currentUser()->hasCustomerRebate();
                 }
             }
-            $this->doNotCallThisAsShoppingCartPlugin = false;
+            self::$doNotCallThisAsShoppingCartPlugin = false;
         }
         
         return $result;
@@ -476,22 +476,52 @@ class SilvercartCustomerRebate extends DataObject {
      * @since 17.07.2013
      */
     public function ShoppingCartPositions(SilvercartShoppingCart $silvercartShoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) {
+        $rebatePositions = ArrayList::create();
+        if (!self::$doNotCallThisAsShoppingCartPlugin
+         && $member instanceof Member
+        ) {
+            $rebates = $member->getCustomerRebates();
+            foreach ($rebates as $rebate) {
+                $rebatePositions->merge($rebate->ShoppingCartPosition($silvercartShoppingCart, $member, $taxable, $excludeShoppingCartPositions, $createForms));
+            }
+        }
+        return $rebatePositions;
+    }
+
+    /**
+     * This method is a hook that gets called by the shoppingcart.
+     *
+     * It returns an entry for the cart listing.
+     *
+     * @param ShoppingCart $silvercartShoppingCart       The shoppingcart object
+     * @param Member       $member                       The customer object
+     * @param Bool         $taxable                      Indicates if taxable or nontaxable entries should be returned
+     * @param array        $excludeShoppingCartPositions Positions that shall not be counted; can contain the ID or the className of the position
+     * @param Bool         $createForms                  Indicates wether the form objects should be created or not
+     *
+     * @return ArrayList
+     *
+     * @author Sebastian Diel <sdiel@pixeltricks.de>
+     * @since 17.07.2013
+     */
+    public function ShoppingCartPosition(SilvercartShoppingCart $silvercartShoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) {
         $rebatePositions = new ArrayList();
         
-        if (!$this->doNotCallThisAsShoppingCartPlugin &&
+        if (!self::$doNotCallThisAsShoppingCartPlugin &&
             $taxable &&
             $this->getShoppingCart()->SilvercartShoppingCartPositions()->Count() > 0 &&
             Member::currentUser()->hasCustomerRebate()) {
             if (is_null($this->rebatePositions)) {
                 $taxRates           = $this->getShoppingCart()->getTaxRatesWithoutFeesAndCharges();
                 $mostValuableRate   = $this->getShoppingCart()->getMostValuableTaxRate($taxRates);
-                $this->doNotCallThisAsShoppingCartPlugin = false;
+                self::$doNotCallThisAsShoppingCartPlugin = false;
 
                 $position               = new SilvercartCustomerRebateShoppingCartPosition();
+                $position->setCustomerRebate($this);
                 $position->Tax          = $mostValuableRate;
                 $this->rebatePositions  = $position->splitForTaxRates($taxRates);
             }
-            $this->doNotCallThisAsShoppingCartPlugin = false;
+            self::$doNotCallThisAsShoppingCartPlugin = false;
             $rebatePositions = $this->rebatePositions;
         }
         

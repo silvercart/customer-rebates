@@ -48,6 +48,12 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
     );
     
     /**
+     * Customer rebate.
+     *
+     * @var SilvercartCustomerRebate
+     */
+    protected $customerRebate = null;
+    /**
      * price total.
      *
      * @var float
@@ -288,6 +294,16 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
     public function getTaxRate() {
         return $this->Tax->Rate;
     }
+    
+    /**
+     * Sets the rebate
+     * 
+     * @param SilvercartCustomerRebate $rebate
+     */
+    public function setCustomerRebate($rebate)
+    {
+        $this->customerRebate = $rebate;
+    }
 
     /**
      * Returns the customer rebate.
@@ -295,11 +311,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
      * @return SilvercartCustomerRebate
      */
     public function getCustomerRebate() {
-        $rebate = null;
-        if (Member::currentUser() instanceof Member) {
-            $rebate = Member::currentUser()->getCustomerRebate();
-        }
-        return $rebate;
+        return $this->customerRebate;
     }
 
     /**
@@ -326,7 +338,7 @@ class SilvercartCustomerRebateShoppingCartPosition extends DataObject {
                 $rebate = $this->getCustomerRebate();
                 if (!is_null($rebate)) {
                     $shoppingCartPositions = $rebate->getShoppingCart()->SilvercartShoppingCartPositions();
-                    $rebate->doNotCallThisAsShoppingCartPlugin = false;
+                    SilvercartCustomerRebate::$doNotCallThisAsShoppingCartPlugin = false;
 
                     $amounts = array();
 
