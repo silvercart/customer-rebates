@@ -279,6 +279,33 @@ class SilvercartCustomerRebate extends DataObject {
     }
     
     /**
+     * Returns the sort index for positions of this module.
+     * 
+     * @return int
+     */
+    public function ShoppingCartSort()
+    {
+        return 1000;
+    }
+    
+    /**
+     * Returns the contextual shopping cart sub total.
+     * 
+     * @return Money
+     */
+    public function ShoppingCartSubTotal()
+    {
+        $amount = null;
+        if (Member::currentUser() instanceof Member) {
+            self::$doNotCallThisAsShoppingCartPlugin = true;
+            $cart   = Member::currentUser()->SilvercartShoppingCart();
+            $amount = $cart->getAmountTotalWithoutFees();
+            self::$doNotCallThisAsShoppingCartPlugin = false;
+        }
+        return $amount;
+    }
+    
+    /**
      * Returns the rebate value for the current shopping cart.
      * 
      * @return float
