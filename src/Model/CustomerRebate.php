@@ -54,6 +54,7 @@ class CustomerRebate extends DataObject
         'Value'                          => DBFloat::class,
         'MinimumOrderValue'              => DBMoney::class,
         'RestrictToNewsletterRecipients' => DBBoolean::class,
+        'RestrictToFirstOrder'           => DBBoolean::class,
     ];
     /**
      * Has one relations.
@@ -99,7 +100,7 @@ class CustomerRebate extends DataObject
      *
      * @var bool
      */
-    public $doNotCallThisAsShoppingCartPlugin = false;
+    public static $doNotCallThisAsShoppingCartPlugin = false;
     /**
      * The shopping cart.
      *
@@ -148,32 +149,13 @@ class CustomerRebate extends DataObject
      * @param bool $includerelations Include relations?
      * 
      * @return array
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 12.12.2018
      */
     public function fieldLabels($includerelations = true) : array
     {
-        $this->beforeUpdateFieldLabels(function(&$labels) {
-            $labels = array_merge(
-                    $labels,
-                    [
-                        'ValidFrom'                      => _t(self::class . '.ValidFrom', 'Valid from'),
-                        'ValidUntil'                     => _t(self::class . '.ValidUntil', 'Valid until'),
-                        'Type'                           => _t(self::class . '.Type', 'Type'),
-                        'TypeAbsolute'                   => _t(self::class . '.TypeAbsolute', 'Absolute'),
-                        'TypePercent'                    => _t(self::class . '.TypePercent', 'Relative'),
-                        'Value'                          => _t(self::class . '.Value', 'Value'),
-                        'Title'                          => _t(self::class . '.Title', 'Title'),
-                        'MinimumOrderValue'              => _t(self::class . '.MinimumOrderValue', 'Minimum order value'),
-                        'RestrictToNewsletterRecipients' => _t(self::class . '.RestrictToNewsletterRecipients', 'Restricted to newsletter recipients'),
-                        'Group'                          => Group::singleton()->singular_name(),
-                        'CustomerRebateTranslations'     => CustomerRebateTranslation::singleton()->plural_name(),
-                        'ProductGroups'                  => ProductGroupPage::singleton()->plural_name(),
-                    ]
-            );
-        });
-        return parent::fieldLabels($includerelations);
+        return $this->defaultFieldLabels($includerelations, [
+            'TypeAbsolute' => _t(self::class . '.TypeAbsolute', 'Absolute'),
+            'TypePercent'  => _t(self::class . '.TypePercent', 'Relative'),
+        ]);
     }
     
     /**
@@ -222,7 +204,7 @@ class CustomerRebate extends DataObject
         ];
         $typeField->setSource($typeFieldValues);
         
-        $productGroupHolder = Tools::PageByIdentifierCode('SilvercartProductGroupHolder');
+        $productGroupHolder = Tools::PageByIdentifierCode(ProductGroupPage::IDENTIFIER_PRODUCT_GROUP_HOLDER);
         $productGroupsField = TreeMultiselectField::create(
                 'ProductGroups',
                 $this->fieldLabel('ProductGroups'),
@@ -276,9 +258,9 @@ class CustomerRebate extends DataObject
     public function getRebateValueForShoppingCart() : float
     {
         $value = 0;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             if (Customer::currentUser() instanceof Member) {
-                $this->doNotCallThisAsShoppingCartPlugin = true;
+                self::$doNotCallThisAsShoppingCartPlugin = true;
                 $cart = Member::currentUser()->ShoppingCart();
                 if ($cart instanceof ShoppingCart) {
                     if ($this->getRelatedProductGroups()->count() == 0) {
@@ -296,7 +278,7 @@ class CustomerRebate extends DataObject
                         // get rebate value from single positions.
                         $value = $this->getRebateValueForShoppingCartPositions();
                     }
-                    $this->doNotCallThisAsShoppingCartPlugin = false;
+                    self::$doNotCallThisAsShoppingCartPlugin = false;
                 }
             }
         }
@@ -397,7 +379,7 @@ class CustomerRebate extends DataObject
      */
     public function getShoppingCart() : ?ShoppingCart
     {
-        $this->doNotCallThisAsShoppingCartPlugin = true;
+        self::$doNotCallThisAsShoppingCartPlugin = true;
         if (is_null($this->shoppingCart)) {
             $this->shoppingCart = Customer::currentUser()->ShoppingCart();
         }
@@ -418,7 +400,7 @@ class CustomerRebate extends DataObject
     public function loadObjectForShoppingCart(ShoppingCart $shoppingCart) : ?CustomerRebate
     {
         $object = null;
-        if (!$this->doNotCallThisAsShoppingCartPlugin
+        if (!self::$doNotCallThisAsShoppingCartPlugin
          && Customer::currentUser() instanceof Member
         ) {
             $object = Member::currentUser()->getCustomerRebate();
@@ -437,7 +419,7 @@ class CustomerRebate extends DataObject
     public function ShoppingCartInit() : bool
     {
         $result = true;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             $controller = Controller::curr();
             // Don't initialise when called from within the cms
             if (!$controller->isFrontendPage) {
@@ -463,13 +445,13 @@ class CustomerRebate extends DataObject
     public function performShoppingCartConditionsCheck(ShoppingCart $shoppingCart, $member, $excludeShoppingCartPositions = false) : bool
     {
         $result = false;
-        if (!$this->doNotCallThisAsShoppingCartPlugin) {
+        if (!self::$doNotCallThisAsShoppingCartPlugin) {
             if ($shoppingCart->ShoppingCartPositions()->exists()
              && $member->hasCustomerRebate()
             ) {
                 $result = true;
             }
-            $this->doNotCallThisAsShoppingCartPlugin = false;
+            self::$doNotCallThisAsShoppingCartPlugin = false;
         }
         return $result;
     }
@@ -493,22 +475,49 @@ class CustomerRebate extends DataObject
     public function ShoppingCartPositions(ShoppingCart $shoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true) : ArrayList
     {
         $rebatePositions = ArrayList::create();
+        if (!self::$doNotCallThisAsShoppingCartPlugin
+         && $member instanceof Member
+        ) {
+            $rebates = $member->getCustomerRebates();
+            foreach ($rebates as $rebate) {
+                $rebatePositions->merge($rebate->ShoppingCartPosition($shoppingCart, $member, $taxable, $excludeShoppingCartPositions, $createForms));
+            }
+        }
+        return $rebatePositions;
+    }
+    
+    /**
+     * This method is a hook that gets called by the shoppingcart.
+     *
+     * It returns an entry for the cart listing.
+     *
+     * @param ShoppingCart $shoppingCart                 The shoppingcart object
+     * @param Member       $member                       The customer object
+     * @param Bool         $taxable                      Indicates if taxable or nontaxable entries should be returned
+     * @param array        $excludeShoppingCartPositions Positions that shall not be counted; can contain the ID or the className of the position
+     * @param Bool         $createForms                  Indicates wether the form objects should be created or not
+     *
+     * @return ArrayList
+     */
+    public function ShoppingCartPosition(ShoppingCart $shoppingCart, Member $member, $taxable = true, $excludeShoppingCartPositions = false, $createForms = true)
+    {
+        $rebatePositions = ArrayList::create();
         
-        if (!$this->doNotCallThisAsShoppingCartPlugin
+        if (!self::$doNotCallThisAsShoppingCartPlugin
          && $taxable
          && $this->getShoppingCart()->ShoppingCartPositions()->exists()
          && Customer::currentUser()->hasCustomerRebate()
         ) {
             if (is_null($this->rebatePositions)) {
-                $taxRates           = $this->getShoppingCart()->getTaxRatesWithoutFeesAndCharges();
-                $mostValuableRate   = $this->getShoppingCart()->getMostValuableTaxRate($taxRates);
-                $this->doNotCallThisAsShoppingCartPlugin = false;
-
-                $position               = ShoppingCartPosition::create();
-                $position->Tax          = $mostValuableRate;
-                $this->rebatePositions  = $position->splitForTaxRates($taxRates);
+                $taxRates                                = $this->getShoppingCart()->getTaxRatesWithoutFeesAndCharges();
+                $mostValuableRate                        = $this->getShoppingCart()->getMostValuableTaxRate($taxRates);
+                self::$doNotCallThisAsShoppingCartPlugin = false;
+                $position                                = ShoppingCartPosition::create();
+                $position->setCustomerRebate($this);
+                $position->Tax                           = $mostValuableRate;
+                $this->rebatePositions                   = $position->splitForTaxRates($taxRates);
             }
-            $this->doNotCallThisAsShoppingCartPlugin = false;
+            self::$doNotCallThisAsShoppingCartPlugin = false;
             $rebatePositions = $this->rebatePositions;
         }
         

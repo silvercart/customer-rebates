@@ -3,6 +3,7 @@ de:
         PLURALNAME: "Rabatte"
         SINGULARNAME: "Rabatt"
         MinimumOrderValue: "Mindestbestellwert"
+        RestrictToFirstOrder: 'Nur gültig auf die erste Bestellung'
         RestrictToNewsletterRecipients: "Nur gültig für Newsletter-Empfänger"
         ProductGroups: "Auf folgende Warengruppen begrenzen"
         TaxInfo: "Anteil auf Positionen mit {taxrate}% MwSt."

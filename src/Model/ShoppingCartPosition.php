@@ -3,6 +3,7 @@
 namespace SilverCart\CustomerRebates\Model;
 
 use SilverCart\Admin\Model\Config;
+use SilverCart\CustomerRebates\Model\CustomerRebate;
 use SilverCart\Dev\Tools;
 use SilverCart\Model\Product\Tax;
 use SilverCart\Model\Customer\Customer;
@@ -38,6 +39,12 @@ class ShoppingCartPosition extends ViewableData
         'PriceTotalFormatted' => 'Text',
         'TaxRate'             => 'Float',
     ];
+    /**
+     * Customer rebate.
+     *
+     * @var CustomerRebate
+     */
+    protected $customerRebate = null;
     /**
      * price total.
      *
@@ -298,17 +305,24 @@ class ShoppingCartPosition extends ViewableData
     }
 
     /**
+     * Sets the rebate
+     * 
+     * @param CustomerRebate $rebate Rebate
+     */
+    public function setCustomerRebate(CustomerRebate $rebate) : ShoppingCartPosition
+    {
+        $this->customerRebate = $rebate;
+        return $this;
+    }
+
+    /**
      * Returns the customer rebate.
      * 
      * @return CustomerRebate
      */
-    public function getCustomerRebate()
+    public function getCustomerRebate() : ?CustomerRebate
     {
-        $rebate = null;
-        if (Customer::currentUser() instanceof Member) {
-            $rebate = Customer::currentUser()->getCustomerRebate();
-        }
-        return $rebate;
+        return $this->customerRebate;
     }
 
     /**
@@ -334,7 +348,7 @@ class ShoppingCartPosition extends ViewableData
                 $rebate = $this->getCustomerRebate();
                 if (!is_null($rebate)) {
                     $shoppingCartPositions = $rebate->getShoppingCart()->ShoppingCartPositions();
-                    $rebate->doNotCallThisAsShoppingCartPlugin = false;
+                    CustomerRebate::$doNotCallThisAsShoppingCartPlugin = false;
                     $amounts = [];
                     foreach ($shoppingCartPositions as $shoppingCartPosition) {
                         if ($shoppingCartPosition instanceof ShoppingCartPosition) {

@@ -14,6 +14,8 @@ use SilverStripe\ORM\DataExtension;
  * @copyright 2018 pixeltricks GmbH
  * @since 12.12.2018
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
+ * 
+ * @property \SilverStripe\Security\Member $owner Owner
  */
 class MemberExtension extends DataExtension
 {
@@ -24,6 +26,13 @@ class MemberExtension extends DataExtension
      */
     protected $customerRebate = [];
     /**
+     * List of valid customer rebates.
+     *
+     * @var ArrayList[]
+     */
+    protected $customerRebates = [];
+
+    /**
      * indicator to prevent the module from loading.
      *
      * @var bool
@@ -33,12 +42,9 @@ class MemberExtension extends DataExtension
     /**
      * Returns whether there is a current rebate.
      * 
-     * @return boolean
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 17.07.2013
+     * @return bool
      */
-    public function hasCustomerRebate()
+    public function hasCustomerRebate() : bool
     {
         $hasCustomerRebate = false;
         if ($this->getCustomerRebate() instanceof CustomerRebate) {
@@ -50,9 +56,9 @@ class MemberExtension extends DataExtension
     /**
      * Returns the current highest valid customer rebate.
      * 
-     * @return CustomerRebate
+     * @return CustomerRebate|null
      */
-    public function getCustomerRebate()
+    public function getCustomerRebate() : ?CustomerRebate
     {
         if (!array_key_exists($this->owner->ID, $this->customerRebate)) {
             $rebate = null;
@@ -76,17 +82,40 @@ class MemberExtension extends DataExtension
     }
     
     /**
+     * Returns the list of valid customer rebates.
+     * 
+     * @return ArrayList
+     */
+    public function getCustomerRebates() : ArrayList
+    {
+        if (!array_key_exists($this->owner->ID, $this->customerRebates)) {
+            $rebates = ArrayList::create();
+            if (!self::$doNotCallThisAsShoppingCartPlugin) {
+                $groups = $this->owner->Groups();
+                foreach ($groups as $group) {
+                    if ($group->hasValidCustomerRebate()) {
+                        $rebate = $this->checkRebateConditions($group->getValidCustomerRebate());
+                        if (!is_null($rebate)) {
+                            $rebates->push($rebate);
+                        }
+                    }
+                }
+            }
+            $this->customerRebates[$this->owner->ID] = $rebates;
+        }
+        return $this->customerRebates[$this->owner->ID];
+    }
+
+    /**
      * Checks the conditions for the given rebate.
      * If the conditions are not fulfilled, the rebate will be set to NULL.
      * 
      * @param CustomerRebate $rebate Rebate to check conditions for.
      * 
-     * @return void
-     *
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 10.03.2014
+     * @return CustomerRebate|null
      */
-    protected function checkRebateConditions($rebate) {
+    protected function checkRebateConditions($rebate) : ?CustomerRebate
+    {
         if ($rebate instanceof CustomerRebate) {
             self::$doNotCallThisAsShoppingCartPlugin = true;
             $cart  = $this->owner->getCart();
@@ -100,6 +129,12 @@ class MemberExtension extends DataExtension
             ) {
                 // Rebate is restricted to newsletter recipients but 
                 // the customer did not subscribe to newsletter.
+                $rebate = null;
+            } elseif ($rebate->RestrictToFirstOrder
+                   && !$this->owner->Orders()->exists()
+            ) {
+                // Rebate is restricted to the first order but the customer 
+                // already placed an order.
                 $rebate = null;
             } elseif ($rebate->getRelatedProductGroups()->Count() > 0
                    && $rebate->getRebatePositions()->Count() == 0

@@ -3,6 +3,7 @@ en:
         PLURALNAME: "Rebates"
         SINGULARNAME: "Rebate"
         MinimumOrderValue: "Minimum order value"
+        RestrictToFirstOrder: 'Restrict to the first order'
         RestrictToNewsletterRecipients: "Restrict to newsletter recipients"
         ProductGroups: "Restrict to the folowing product groups"
         TaxInfo: "amount for positions with {taxrate}% VAT"
