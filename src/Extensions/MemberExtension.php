@@ -4,6 +4,7 @@ namespace SilverCart\CustomerRebates\Extensions;
 
 use SilverCart\CustomerRebates\Model\CustomerRebate;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\ORM\ArrayList;
 
 /**
  * Extension for the SilverStripe Member.
