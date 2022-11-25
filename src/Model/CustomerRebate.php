@@ -344,16 +344,13 @@ class CustomerRebate extends DataObject
      * @param SilverCartShoppingCartPosition $position Position to check
      * 
      * @return bool
-     * 
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 13.12.2018
      */
     public function positionIsMatchingWithRebate(SilverCartShoppingCartPosition $position) : bool
     {
         $positionIsMatchingWithRebate = false;
         $product                      = $position->Product();
-        $validProductGroups           = $this->getRelatedProductGroups()->map();
-        if (array_key_exists($product->ProductGroupID, $validProductGroups->toArray())) {
+        $validProductGroups           = $this->getRelatedProductGroups()->map()->toArray();
+        if (array_key_exists($product->ProductGroupID, $validProductGroups)) {
             $positionIsMatchingWithRebate = true;
         } elseif ($product->ProductGroupMirrorPages()->exists()) {
             $map = $product->ProductGroupMirrorPages()->map();
