@@ -3,6 +3,7 @@
 namespace SilverCart\CustomerRebates\Extensions;
 
 use SilverCart\CustomerRebates\Model\CustomerRebate;
+use SilverCart\Model\Pages\ProductGroupPage;
 use SilverStripe\ORM\DataExtension;
 
 /**
@@ -14,6 +15,8 @@ use SilverStripe\ORM\DataExtension;
  * @copyright 2018 pixeltricks GmbH
  * @since 12.12.2018
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
+ * 
+ * @property ProductGroupPage $owner Owner
  */
 class ProductGroupPageExtension extends DataExtension
 {
@@ -22,8 +25,8 @@ class ProductGroupPageExtension extends DataExtension
      *
      * @return array
      */
-    private static $belongs_many_many = [
-        'CustomerRebates' => CustomerRebate::class,
+    private static array $belongs_many_many = [
+        'CustomerRebates' => CustomerRebate::class . '.ProductGroups',
     ];
     
     /**
@@ -32,14 +35,11 @@ class ProductGroupPageExtension extends DataExtension
      * @param array &$labels labels.
      * 
      * @return void
-     *
-     * @author Sebastian Diel <sdiel@pixeltricks.de>
-     * @since 12.12.2018
      */
-    public function updateFieldLabels(&$labels)
+    public function updateFieldLabels(&$labels) : void
     {
         $labels = array_merge($labels, [
-            'CustomerRebates' => CustomerRebate::singleton()->plural_name(),
+            'CustomerRebates' => CustomerRebate::singleton()->i18n_plural_name(),
         ]);
     }
 }

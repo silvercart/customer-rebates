@@ -4,10 +4,11 @@ namespace SilverCart\CustomerRebates\Model;
 
 use SilverCart\Dev\Tools;
 use SilverCart\Model\Customer\Customer;
-use SilverCart\Model\Pages\ProductGroupPage;
 use SilverCart\Model\Order\ShoppingCart;
 use SilverCart\Model\Order\ShoppingCartPosition as SilverCartShoppingCartPosition;
+use SilverCart\Model\Pages\ProductGroupPage;
 use SilverCart\ORM\DataObjectExtension;
+use SilverCart\ORM\ExtensibleDataObject;
 use SilverCart\ORM\FieldType\DBMoney;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
@@ -18,10 +19,11 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBBoolean;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBFloat;
-use SilverStripe\ORM\Map;
 use SilverStripe\ORM\ManyManyList;
+use SilverStripe\ORM\Map;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
+use function _t;
 
 /**
  * Customer rebate model.
@@ -35,7 +37,7 @@ use SilverStripe\Security\Member;
  */
 class CustomerRebate extends DataObject
 {
-    use \SilverCart\ORM\ExtensibleDataObject;
+    use ExtensibleDataObject;
     /**
      * DB table name.
      *
